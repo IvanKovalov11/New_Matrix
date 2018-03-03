@@ -14,59 +14,115 @@ class matrix_t
 public:
 	matrix_t() 
 	{
+		data = nullptr;
 		str = 0;
 		col = 0;
 	}
 
-	matrix_t add(matrix_t & other) 
+	matrix_t(matrix_t const & other) 
 	{
-		if (this->str == other.str && this->col == other.col) 
+		this->str = other.str;
+		this->col = other.col;
+		this->data = new int *[this->str];
+		for (unsigned int i = 0; i < this->str; i++) 
 		{
-			for (unsigned int i = 0; i < this->str; i++) 
+			data[i] = new int[this->col];
+			for (unsigned int j = 0; j < this->col; j++) 
 			{
-				for (unsigned int j = 0; j < this->col; j++) 
-				{
-					this->data[i][j] += other.data[i][j];
-				}
+				this->data[i][j] = other.data[i][j];
 			}
 		}
-		else 
+	}
+
+	matrix_t & operator =(matrix_t const & other) 
+	{
+		for (unsigned int i = 0; i < str; i++) 
 		{
-			cout << endl << "An error has occured while reading input data";
-			exit(0);
+			delete[] this->data[i];
+		}
+		delete[] this->data;
+
+		this->str = other.str;
+		this->col = other.col;
+		this->data = new int *[str];
+		for (unsigned int i = 0; i < this->str; i++) 
+		{
+			this->data[i] = new int[this->col];
+			for (unsigned int j = 0; j < this->col; j++) 
+			{
+				this->data[i][j] = other.data[i][j];
+			}
 		}
 		return *this;
 	}
 
-	matrix_t sub(matrix_t & other) 
-	{
-		if (this->str == other.str && this->col == other.col) 
-		{
-			for (unsigned int i = 0; i < this->str; i++) 
-			{
-				for (unsigned int j = 0; j < this->col; j++) 
-				{
-					this->data[i][j] -= other.data[i][j];
-				}
-			}
-		}
-		else 
-		{
-			cout << endl << "An error has occured while reading input data";
-			exit(0);
-		}
-		return *this;
-	}
-
-	matrix_t mul(matrix_t & other) 
+	matrix_t add(matrix_t & other) const 
 	{
 		matrix_t result;
-		if (this->col == other.str)
+
+		if (this->str == other.str && this->col == other.col) 
+		{
+			result.data = new int *[this->str];
+			for (unsigned int j = 0; j < this->str; j++) 
+			{
+				result.data[j] = new int[this->col];
+			}
+			result.str = this->str;
+			result.col = this->col;
+			for (unsigned int i = 0; i < this->str; i++) 
+			{
+				for (unsigned int j = 0; j < this->col; j++) 
+				{
+					result.data[i][j] = this->data[i][j] + other.data[i][j];
+				}
+			}
+		}
+		else 
+		{
+			cout << endl << "An error has occured while reading input data";
+			exit(0);
+		}
+		return result;
+	}
+
+	matrix_t sub(matrix_t & other) const 
+	{
+		matrix_t result;
+
+		if (this->str == other.str && this->col == other.col) 
+		{
+			result.data = new int *[this->str];
+			for (unsigned int i = 0; i < this->str; i++) 
+			{
+				result.data[i] = new int[this->col];
+			}
+			result.str = this->str;
+			result.col = this->col;
+			for (unsigned int i = 0; i < this->str; i++) 
+			{
+				for (unsigned int j = 0; j < this->col; j++) 
+				{
+					result.data[i][j] = this->data[i][j] - other.data[i][j];
+				}
+			}
+		}
+		else 
+		{
+			cout << endl << "An error has occured while reading input data";
+			exit(0);
+		}
+		return result;
+	}
+
+	matrix_t mul(matrix_t & other) const 
+	{
+		matrix_t result;
+		if (this->col == other.str) 
 		{
 			result.str = this->str;
 			result.col = other.col;
 			result.data = new int *[this->str];
-			for (int i = 0; i < this->str; ++i) 
+			for (unsigned int i = 0; i < this->str; ++i) 
 			{
 				result.data[i] = new int[other.col];
 			}
@@ -83,7 +139,7 @@ public:
 				}
 			}
 		}
-		else
+		else 
 		{
 			cout << endl << "An error has occured while reading input data";
 			exit(0);
@@ -91,20 +147,24 @@ public:
 		return result;
 	}
 
-	matrix_t trans(matrix_t & other) 
+	matrix_t trans(matrix_t & other) const 
 	{
-		this->str = other.col;
-		this->col = other.str;
-		this->data = new int *[other.col];
-		for (unsigned int i = 0; i < this->str; ++i)
+		matrix_t result;
+		result.str = other.col;
+		result.col = other.str;
+		result.data = new int *[other.col];
+		for (unsigned int i = 0; i < other.col; i++) 
 		{
-			this->data[i] = new int[this->col];
-			for (unsigned int j = 0; j < this->col; ++j)
+			result.data[i] = new int[other.str];
+		}
+		for (unsigned int i = 0; i < result.str; ++i) 
+		{
+			for (unsigned int j = 0; j < result.col; ++j)
 			{
-				this->data[i][j] = other.data[j][i];
+				result.data[i][j] = other.data[j][i];
 			}
 		}
-		return *this;
+		return result;
 	}
 
 	ifstream & read(std::ifstream & fin) 
@@ -125,7 +185,8 @@ public:
 				}
 			}
 		}
-		else {
+		else 
+		{
 			cout << "An error has occured while reading input data";
 			exit(0);
 		}
@@ -148,7 +209,11 @@ public:
 
 	~matrix_t() 
 	{
-
+		for (unsigned int i = 0; i < this->str; i++)
+		{
+			delete[] this->data[i];
+		}
+		delete[] this->data;
 	}
 };
 
@@ -181,16 +246,16 @@ int main()
 	matrix_t matrix1;
 	matrix_t result;
 
-	char op;
-	string name1, name2;
-	if (!(read_name_of_file(name1, op, name2))) 
+	char Operator;
+	string File_1, File_2;
+	if (!(read_name_of_file(File_1, Operator, File_2))) 
 	{
 		cout << "An error has occured while reading input data";
 		cin.get();
 		return 0;
 	}
 	ifstream fin;
-	const char * str = name1.c_str();
+	const char * str = File_1.c_str();
 	fin.open(str);
 	if (!fin.is_open()) 
 	{
@@ -198,11 +263,11 @@ int main()
 		return 0;
 	}
 	matrix1.read(fin);
-	if (op == '+' || op == '-' || op == '*')
+	if (Operator == '+' || Operator == '-' || Operator == '*')
 	{
 		matrix_t matrix2;
 		ifstream fin;
-		const char * str = name2.c_str();
+		const char * str = File_2.c_str();
 		fin.open(str);
 		if (!fin.is_open()) 
 		{
@@ -210,7 +275,7 @@ int main()
 			return 0;
 		}
 		matrix2.read(fin);
-		switch (op)
+		switch (Operator)
 		{
 		case '+':
 			result = matrix1.add(matrix2);
@@ -223,7 +288,7 @@ int main()
 			break;
 		}
 	}
-	else if (op == 'T')
+	else if (Operator == 'T')
 	{
 		result = result.trans(matrix1);
 
